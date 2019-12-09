@@ -1,0 +1,41 @@
+import  hashlib
+import  binascii
+import  datetime
+from pyDes import  des,ECB,PAD_PKCS5
+def xiadan():
+    #下单url地址
+    base_url = "http://otcapay.com:8833/www/pay.api?"
+    #商户私钥
+    api_key = "01DDN681JH7ZPK5XM3DYYA4HC67QSZV2"
+    #商户ID
+    user_key = "01DDN681JHW7XKJ1ESM7VAWGR1RFFAPF"
+    #商户订单编号
+    bid = "123456789"
+    #订单金额
+    amount = "300"
+    #支付方式
+    paymethod = "WECHAT"
+    #商户回调url
+    callback = "http://www.xxx123hub.com/xxxx/callbackurl.php"
+    #得到id_key，将user_key+api_key_当天日期做md5加密
+    md51_key = user_key.upper()+api_key.upper()+datetime.datetime.now().strftime("%Y%m%d")
+    id_key = hashlib.md5(md51_key.encode(encoding="utf-8")).hexdigest()
+    #将AMOUNT+PAYTHOD+BID+CALLBACK相连接
+    data = "AMOUNT="+amount+"&"+"PAYMETHOD="+paymethod+"&"+"BID="+bid+"&"+"CALLBACK="+callback
+    #取商户私钥的前八位大写
+    api_key8 = api_key.upper()[0:8]
+    #des中各个参数
+    #key=加密私钥为商户私钥前八位大写,mode为加密模式ECB，padmode为填充方式
+    #以下为des加密算法
+    null_param = des(key=api_key8,mode=ECB,IV=None,pad=None,padmode=PAD_PKCS5)
+    param = null_param.encrypt(data.encode(),padmode=PAD_PKCS5).hex()
+    #将param大写，api_key大写和当日时间相连接
+    sign_string = param.upper()+api_key.upper()+datetime.datetime.now().strftime("%Y%m%d")
+    #对连接后的是字符串做md5处理
+    sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
+
+    Url = base_url+"user_key="+user_key+"&"+"id_key="+id_key+"&"+"param="+param+"&"+"sign="+sign
+
+    print(Url)
+if __name__ == '__main__':
+    xiadan()
